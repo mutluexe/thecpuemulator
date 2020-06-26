@@ -15,6 +15,53 @@ static int pc = 0; // Program Counter
 static int memory[256]; // Memory
 static int F = 0; // Initialize F flag
 static int AC = 0; // Initialize accumulator
+static int AX = 0; // Initialize AX register
+
+static int MAXSIZE = 12;       
+static int stack[12];     
+static int top = -1;            
+
+int isempty() {
+
+   if(top == -1)
+      return 1;
+   else
+      return 0;
+}
+   
+int isfull() {
+
+   if(top == MAXSIZE)
+      return 1;
+   else
+      return 0;
+}
+
+int peek() {
+   return stack[top];
+}
+
+int pop() {
+   int data;
+	
+   if(!isempty()) {
+      data = stack[top];
+      top = top - 1;   
+      return data;
+   } else {
+      printf("Could not retrieve data, Stack is empty.\n");
+   }
+   return 0;
+}
+
+void push(int data) {
+   if(!isfull()) {
+      top = top + 1;   
+      stack[top] = data;
+   } else {
+      printf("Could not insert data, Stack is full.\n");
+   }
+}
 
 int main(int argc, char *argv[]){
 // Defining variables here
@@ -23,7 +70,7 @@ char *line = NULL;
 size_t len = 0;
 ssize_t nread;
 char *token = NULL;
-ins **instructions = (ins **) malloc(1024 * sizeof(ins*));
+ins **instructions = (ins **) malloc(256 * sizeof(ins*));
 int test = 0;
 // Create node
 
@@ -76,6 +123,7 @@ int test = 0;
     // Execute instructions
     while(pc != i){
     execute(instructions[pc]->name, instructions[pc]->value);
+    /*printf("program counter: %d\n" , pc);*/
     }
     return 0;
 }
@@ -115,47 +163,83 @@ int execute(char *ins, int value){
     }
 
     if(strcmp(ins, "JMP") == 0){
-    pc = value;
+        pc = value;
     }
 
     if(strcmp(ins, "ADD") == 0){
-    AC += value;
-    pc+=1;
+        AC += value;
+        pc+=1;
     }
 
     if(strcmp(ins, "ADDM") == 0){
-    AC += memory[value];
-    pc+=1;
+        AC += memory[value];
+        pc+=1;
     }
 
     if(strcmp(ins, "SUBM") == 0){
-    AC -= memory[value];
-    pc+=1;
+        AC -= memory[value];
+        pc+=1;
     }
 
     if(strcmp(ins, "SUB") == 0){
-    AC -= value;
-    pc+=1;
+        AC -= value;
+        pc+=1;
     }
 
     if(strcmp(ins, "MUL") == 0){
-    AC *= value;
-    pc+=1;
+        AC *= value;
+        pc+=1;
     }
 
     if(strcmp(ins, "MULM") == 0){
-    AC *= memory[value];
-    pc+=1;
+        AC *= memory[value];
+        pc+=1;
     }
 
     if(strcmp(ins, "DISP") == 0){
-    printf("%d\n", AC);
-    pc+=1;
+        printf("%d ", AC);
+        pc+=1;
+    }
+
+    if(strcmp(ins, "DASC") == 0){
+        printf("%c", AC);
+        pc+=1;
     }
 
     if(strcmp(ins, "HALT") == 0){
-    printf("execution stopped!\n");
-    pc+=1;
+        printf("execution stopped!\n");
+        pc+=1;
+    }
+
+    if(strcmp(ins, "PUSH") == 0){
+        push(value);
+        pc+=1;
+    }
+
+    if(strcmp(ins, "POP") == 0){
+        AC = pop();
+        pc+=1;
+    }
+
+    if(strcmp(ins, "RETURN") == 0){
+        pc = pop();
+    }
+
+    if(strcmp(ins, "LOADI") == 0){
+        AC = memory[AX];
+        pc+=1;
+    }
+
+    if(strcmp(ins, "STOREI") == 0){
+        memory[AX] = AC;
+        pc+=1;
+    }
+    
+    if(strcmp(ins, "SWAP") == 0){
+        int temp = AC;
+        AC = AX;
+        AX = temp;
+        pc+=1;
     }
     return pc;
 }
